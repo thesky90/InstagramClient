@@ -1,5 +1,7 @@
 package com.ebay.android.instagramclient;
 
+import android.app.Activity;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,23 +18,41 @@ import java.util.ArrayList;
 
 import cz.msebera.android.httpclient.Header;
 
-public class PhotosActivity extends AppCompatActivity {
+public class PhotosActivity extends Activity {
 
     public static final String CLIENT_ID = "e05c462ebd86446ea48a5af73769b602";
     private ArrayList<InstagramPhoto> photos;
     private InstagramPhotoAdapter aPhotos;
+    private SwipeRefreshLayout swipeContainer;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photos);
+
+
+
         photos = new ArrayList<>();
         aPhotos = new InstagramPhotoAdapter(this,photos);
 
         ListView lvPhotos =  (ListView) findViewById(R.id.lvPhotos);
         lvPhotos.setAdapter(aPhotos);
         fetchPopularPhoto();
+
+        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                fetchPopularPhoto();
+            }
+        });
+
+        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
+
     }
 
     public void fetchPopularPhoto(){
@@ -42,8 +62,7 @@ public class PhotosActivity extends AppCompatActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 //super.onSuccess(statusCode, headers, response);
-
-
+                photos.clear();
                 JSONArray photosJSON;
                 try{
                     photosJSON = response.getJSONArray("data");
@@ -51,7 +70,7 @@ public class PhotosActivity extends AppCompatActivity {
                         JSONObject photoJSON = photosJSON.getJSONObject(i);
                         InstagramPhoto photo = new InstagramPhoto();
                         photo.username = photoJSON.getJSONObject("user").getString("username");
-                        if(photoJSON.getJSONObject("caption") == null){
+                        if(photoJSON.optJSONObject("caption") == null){
                             photo.caption = "";
                         }
                         else{
@@ -65,7 +84,7 @@ public class PhotosActivity extends AppCompatActivity {
                 }catch(JSONException e){
                     e.printStackTrace();
                 }
-
+                swipeContainer.setRefreshing(false);
                 aPhotos.notifyDataSetChanged();
                 Log.i("DEBUG",response.toString());
             }

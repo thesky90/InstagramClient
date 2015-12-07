@@ -1,6 +1,7 @@
 package com.ebay.android.instagramclient;
 
 import android.content.Context;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +31,8 @@ public class InstagramPhotoAdapter extends ArrayAdapter<InstagramPhoto> {
 
         TextView tvCaption = (TextView)convertView.findViewById(R.id.tvCaption);
         ImageView ivPhoto = (ImageView)convertView.findViewById(R.id.ivPhoto);
-        tvCaption.setText(photo.caption);
+        StringBuffer photoCaptionBuffer = new StringBuffer().append("<b>").append(photo.username).append("</b>").append(" ").append(photo.caption);
+        tvCaption.setText(Html.fromHtml(photoCaptionBuffer.toString()));
         ivPhoto.setImageResource(0);
         Picasso.with(getContext()).load(photo.imageUrl).into(ivPhoto);
         return convertView;
